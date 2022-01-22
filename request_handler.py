@@ -1,7 +1,7 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from views import get_all_users, get_posts_expand_user
-from views.users_requests import get_users_partner
+from views import get_all_users, get_posts_expand_user, get_user_by_email, create_post
+from views.users_requests import get_users_partner, get_user_by_id
 
 
 
@@ -66,7 +66,7 @@ class HandleRequests(BaseHTTPRequestHandler):
             ( resource, id ) = parsed
             if resource == "users":
                 if id is not None:
-                    response = f"{get_single_entry(id)}"
+                    response = f"{get_user_by_id(id)}"
                 else:
                     response = f"{get_all_users()}"
             elif resource == "customers":
@@ -91,12 +91,12 @@ class HandleRequests(BaseHTTPRequestHandler):
                 response = get_users_partner()
             elif key == "_expand" and resource == "posts":
                 response = get_posts_expand_user()
-            elif key == "status" and resource == "animals":
-                response = get_animal_by_status(value)
-            elif key == "location_id" and resource == "employees":
-                response = get_employee_by_location(int(value))
+            elif key == "email" and resource == "users":
+                response = get_user_by_email(value)
+            elif key == "id" and resource == "users":
+                response = get_user_by_id(int(value))
 
-        self.wfile.write(response.encode())
+        self.wfile.write(f"{response}".encode())
 
     def do_POST(self):
         self._set_headers(201)
@@ -105,8 +105,8 @@ class HandleRequests(BaseHTTPRequestHandler):
         post_body = json.loads(post_body)
         (resource, id) = self.parse_url(self.path)
         new_resource = None
-        if resource == "entries":
-            new_resource = create_journal_entry(post_body)
+        if resource == "posts":
+            new_resource = create_post(post_body)
         elif resource == "locations":
             new_resource = create_location(post_body)
         elif resource == "employees":
